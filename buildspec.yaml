@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    DOCKER_REGISTRY_USERNAME: "arn:aws:secretsmanager:us-east-1:747240980649:secret:CICD-Pipeline-Secret-iCSx7e:DOCKER_REGISTRY_USERNAME"
+    DOCKER_REGISTRY_TOKEN: "arn:aws:secretsmanager:us-east-1:747240980649:secret:CICD-Pipeline-Secret-iCSx7e:DOCKER_REGISTRY_TOKEN"
+    DOCKER_REGISTRY_URL: "arn:aws:secretsmanager:us-east-1:747240980649:secret:CICD-Pipeline-Secret-iCSx7e:DOCKER_REGISTRY_URL"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+
+  pre_build:
+    commands:
+      - echo "Installing Python dependencies"
+      - pip install -r requirements.txt
+
+  build:
+    commands:
+      - echo "Log in to docker registry using token"
+      - echo "$DOCKER_REGISTRY_TOKEN" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - echo "Building Container Image on Docker"
+      - docker build -t "$DOCKER_REGISTRY_USERNAME/muntaha-flask:version786" .
+      - docker push "$DOCKER_REGISTRY_USERNAME/muntaha-flask:version786"
+
+  post_build:
+    commands:
+      - echo "Build Completed"
